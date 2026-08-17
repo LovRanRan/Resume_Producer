@@ -4,7 +4,7 @@
 
 最后更新：2026-08-16
 
-**仓库**：https://github.com/LovRanRan/Rusume_Producer · 主分支 `main`
+**仓库**：https://github.com/LovRanRan/Resume_Producer · 主分支 `main`
 **Git 工作流**：每完成一个 commit 自动 push 到 GitHub。
 
 ---
