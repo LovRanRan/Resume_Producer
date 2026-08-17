@@ -1,0 +1,93 @@
+# Resume Producer — 按 JD 定制简历生成器 · 进度追踪
+
+> 一个 AI 简历定制 agent：用户把**所有**基础信息/实习/项目写进一份 master markdown 档案 → 系统存储为 Candidate → 对每一个 Job 链接或 JD，自动挑选最相关的经历、改写 bullet、生成一份**固定格式**的定制简历 PDF。
+
+最后更新：2026-08-16
+
+**仓库**：https://github.com/LovRanRan/Rusume_Producer · 主分支 `main`
+**Git 工作流**：每完成一个 commit 自动 push 到 GitHub。
+
+---
+
+## 1. 项目目标
+
+核心主线：
+**Master 档案（markdown）→ 解析存储 Candidate → 输入 JD（文本/文件/链接）→ AI 筛选 + 改写 → 固定模板渲染 → 简历 PDF**
+
+关键理念：
+- **一份 master 档案，无限份定制简历**。用户维护一份"超集"档案（写得越全越好），每份产出简历是它的一个针对性子集。
+- **AI 只做取舍和措辞，不编造事实**。所有内容必须来自 master 档案，AI 负责挑选、排序、按 JD 关键词改写 bullet。
+- **格式固定**。排版由 LaTeX 模板锁死，AI 不碰格式，保证每份 PDF 都专业、一致、ATS 友好。
+
+## 2. 关键决策记录
+
+- **技术栈：Python 3.12 CLI**（uv 管理），开发最快、PDF/解析生态最好；后续可加 FastAPI 变成服务（v2）。
+- **PDF 引擎：XeLaTeX**（本机已装 MacTeX）。排版质量最高、模板固定不跑版、文本可选中（ATS 友好）。架构上渲染器留接口，之后可加 HTML→PDF 引擎。
+- **AI 定制：Claude API**（`claude-opus-5` + structured outputs）。读 JD + master 档案，输出结构化的 TailoredResume（选哪些条目、什么顺序、bullet 怎么改写）。防幻觉措施：prompt 明确"只能用档案里的事实"，且输出按条目 ID 引用原文，程序端校验。
+- **JD 输入三种方式全做**：粘贴文本（最可靠，先做）、本地文件、URL 自动抓取（尽力而为——很多站点反爬/需登录，抓不到就提示用户粘贴）。
+- **多 candidate 支持**：数据模型按 candidate id 组织（`data/<candidate_id>/`），虽然当前主要是单用户自用。
+- **中英文简历**：档案可以中英混写；v1 产出以英文简历为主（美国求职场景），模板用 XeLaTeX 天然支持中文，后续可加中文模板。
+
+## 3. 技术选型（已定稿 ✅）
+
+- 语言：Python 3.12 + uv
+- CLI：Typer
+- 数据模型：Pydantic v2
+- 档案格式：Markdown（约定 section 结构，见 `examples/candidate_example.md`）
+- AI：Anthropic Claude API（`claude-opus-5`，structured outputs，`ANTHROPIC_API_KEY`）
+- JD 抓取:httpx + BeautifulSoup(尽力而为)
+- 模板：Jinja2 → LaTeX（自定义分隔符避免与 LaTeX 冲突）
+- PDF：XeLaTeX（MacTeX）
+- 存储：本地 JSON（`data/<candidate_id>/candidate.json` + 产出历史）
+
+## 4. 模块清单
+
+| # | 模块 | 说明 | 状态 |
+|---|------|------|------|
+| 0 | 项目规划 | progress.md、README、git repo | ✅ 完成 |
+| 1 | Candidate 模型 | Pydantic：基础信息/教育/实习/项目/技能，每条目带稳定 ID | ⬜ 未开始 |
+| 2 | Markdown 解析 | master .md → Candidate（约定 section 格式） | ⬜ 未开始 |
+| 3 | 存储层 | `rusume add/list/show`，data/ 目录 JSON 持久化 | ⬜ 未开始 |
+| 4 | LaTeX 模板 | 单页、固定格式、ATS 友好的简历模板 | ⬜ 未开始 |
+| 5 | PDF 渲染 | Jinja2 填模板 → XeLaTeX 编译，`rusume render` | ⬜ 未开始 |
+| 6 | JD 输入 | 粘贴文本 / 文件 / URL 抓取 | ⬜ 未开始 |
+| 7 | AI 定制引擎 | Claude 筛选条目 + 改写 bullet → TailoredResume，防幻觉校验 | ⬜ 未开始 |
+| 8 | tailor 命令 | `rusume tailor --jd ...` 一条命令出定制 PDF + 产出历史 | ⬜ 未开始 |
+| 9 | 关键词覆盖报告 | 显示 JD 关键词覆盖情况 / 缺口提示 | ⬜ 未开始 |
+| 10 | Web 界面 / 服务化 | FastAPI + 前端（v2） | ⬜ 未开始 |
+
+> 状态：✅ 完成 · 🟡 部分完成 · ⬜ 未开始
+
+## 5. 分阶段计划
+
+### Phase 0 — 构思 & 规划 ✅
+- [x] 确认形态（Python CLI）、PDF 引擎（XeLaTeX）、AI 方案（Claude API）、JD 输入方式（三种全做）
+- [x] 写 progress.md / README
+- [x] 初始化 git repo + GitHub
+
+### Phase 1 — 核心数据层
+- [ ] Candidate Pydantic 模型（含条目稳定 ID）
+- [ ] master markdown 解析器 + 示例档案
+- [ ] 存储层 + CLI（add / list / show）
+
+### Phase 2 — PDF 渲染
+- [ ] LaTeX 简历模板（固定格式）
+- [ ] Jinja2 渲染 + XeLaTeX 编译
+- [ ] `rusume render` 直接渲染 master 档案（不经 AI，用于验证模板）
+
+### Phase 3 — JD 定制（核心）
+- [ ] JD 输入：文本 / 文件 / URL 抓取
+- [ ] Claude structured output：TailoredResume（选条目 + 排序 + bullet 改写）
+- [ ] 防幻觉校验（产出内容必须能对应到档案条目）
+- [ ] `rusume tailor` 端到端：JD → 定制 PDF
+- [ ] 产出历史记录(每个 JD 的产出存档)
+
+### Phase 4 — 增强(后续)
+- [ ] 关键词覆盖 / 缺口报告
+- [ ] 多模板 / 中文模板
+- [ ] Cover letter 生成
+- [ ] FastAPI 服务化 + Web 界面
+
+## 6. 日志
+
+- 2026-08-16:Phase 0 —— 立项,确定技术方案,初始化 repo。
