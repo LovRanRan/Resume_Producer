@@ -54,8 +54,8 @@
 | 1 | Candidate 模型 | Pydantic：基础信息/教育/实习/项目/技能，每条目带稳定 ID | ✅ 完成 |
 | 2 | Markdown 解析 | master .md → Candidate（约定 section 格式） | ✅ 完成 |
 | 3 | 存储层 | `resume add/list/show`，data/ 目录 JSON 持久化 | ✅ 完成 |
-| 4 | LaTeX 模板 | 单页、固定格式、ATS 友好的简历模板 | ⬜ 未开始 |
-| 5 | PDF 渲染 | Jinja2 填模板 → XeLaTeX 编译，`resume render` | ⬜ 未开始 |
+| 4 | LaTeX 模板 | 单页、固定格式、ATS 友好的简历模板 | ✅ 完成 |
+| 5 | PDF 渲染 | Jinja2 填模板 → XeLaTeX 编译，`resume render` | ✅ 完成 |
 | 6 | JD 输入 | 粘贴文本 / 文件 / URL 抓取 | ⬜ 未开始 |
 | 7 | AI 定制引擎 | Claude 筛选条目 + 改写 bullet → TailoredResume，防幻觉校验 | ⬜ 未开始 |
 | 8 | tailor 命令 | `resume tailor --jd ...` 一条命令出定制 PDF + 产出历史 | ⬜ 未开始 |
@@ -77,10 +77,10 @@
 - [x] 存储层 + CLI（add / list / show）
 - [x] 真实 master 档案导入验证（data/haichuan，17 bullets，零警告）
 
-### Phase 2 — PDF 渲染
-- [ ] LaTeX 简历模板（固定格式）
-- [ ] Jinja2 渲染 + XeLaTeX 编译
-- [ ] `resume render` 直接渲染 master 档案（不经 AI，用于验证模板）
+### Phase 2 — PDF 渲染 ✅
+- [x] LaTeX 简历模板（固定格式，classic 单栏 ATS，TeX Gyre Termes）
+- [x] Jinja2 渲染（\VAR/\BLOCK 分隔符 + LaTeX 转义过滤器）+ XeLaTeX 编译（返回页数）
+- [x] `resume render` 直接渲染 master 档案（不经 AI，用于验证模板）
 
 ### Phase 3 — JD 定制（核心）
 - [ ] JD 输入：文本 / 文件 / URL 抓取
@@ -100,3 +100,4 @@
 - 2026-08-16:Phase 0 —— 立项,确定技术方案,初始化 repo。
 - 2026-08-16:创建 GitHub repo(LovRanRan/Resume_Producer, public)并推送;修正仓库名笔误;CLI 定名 `resume`;确认模板风格(单栏 ATS)、改写尺度(自由改写+事实校验)、首份档案用真实材料、条目 ID 与单页控制方案。环境验证:XeLaTeX(TeX Live 2025)/uv/Python 3.12 就绪。
 - 2026-08-16:Phase 1 完成 —— master 档案格式规范(docs/master-format.md)、Pydantic 模型、markdown 解析器(中英 section 别名、bullet 续行、自动条目 ID)、存储层、`resume add/list/show` CLI。16 pytest + ruff 全绿;用户真实简历(V4.1)整理为 data/haichuan/master.md 并导入验证:2 教育 / 2 经历 / 7 项目 / 5 技能类别 / 17 bullets,零警告。真实档案仅存本地(gitignore)。
+- 2026-08-16:Phase 2 完成 —— classic.tex.j2 模板(单栏 ATS,以用户 V4.1 简历版式为基准)、renderer.py(Jinja2 自定义分隔符、单遍 LaTeX 转义、xelatex 编译返回页数)。转义细节:`--` 防连字、`/` 允许断行、`→` 转 \rightarrow。`resume render haichuan` 出 2 页 PDF(完整档案超页属预期),版式经视觉核对。21 tests + ruff 全绿。

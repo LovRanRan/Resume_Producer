@@ -1,0 +1,94 @@
+\#{ classic.tex.j2 — 经典单栏 ATS 简历模板，Jinja2 自定义分隔符（VAR/BLOCK 前缀）}
+\documentclass[10pt]{article}
+\usepackage[margin=0.55in]{geometry}
+\usepackage{fontspec}
+\setmainfont{texgyretermes}[
+  Extension = .otf,
+  UprightFont = *-regular,
+  BoldFont = *-bold,
+  ItalicFont = *-italic,
+  BoldItalicFont = *-bolditalic,
+]
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\urlstyle{same}
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+
+\newcommand{\resumesection}[1]{%
+  \vspace{8pt}%
+  {\large\bfseries\MakeUppercase{#1}}\par
+  \vspace{-6pt}\rule{\textwidth}{0.6pt}\par
+  \vspace{1pt}%
+}
+
+\setlist[itemize]{leftmargin=1.15em, itemsep=1.5pt, parsep=0pt, topsep=2.5pt,
+  label=\textbullet}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE\bfseries \VAR{name|tex}}\\[4pt]
+  \VAR{contact_tex}
+\end{center}
+
+\BLOCK{if summary}
+\VAR{summary|tex}
+\BLOCK{endif}
+
+\BLOCK{if education}
+\resumesection{Education}
+\BLOCK{for e in education}
+\textbf{\VAR{e.school|tex}}\hfill \VAR{e.location|tex}\par
+\BLOCK{if e.degree or e.dates_line}
+\textit{\VAR{e.degree|tex}}\hfill \VAR{e.dates_line|tex}\par
+\BLOCK{endif}
+\BLOCK{if e.coursework}
+Coursework: \VAR{e.coursework|tex}\par
+\BLOCK{endif}
+\BLOCK{if not loop.last}\vspace{4pt}\BLOCK{endif}
+\BLOCK{endfor}
+\BLOCK{endif}
+
+\BLOCK{if skills}
+\resumesection{Technical Skills}
+\BLOCK{for s in skills}
+\textbf{\VAR{s.name|tex}:} \VAR{s.items|tex}\par
+\BLOCK{if not loop.last}\vspace{1.5pt}\BLOCK{endif}
+\BLOCK{endfor}
+\BLOCK{endif}
+
+\BLOCK{if projects}
+\resumesection{Projects}
+\BLOCK{for p in projects}
+\textbf{\VAR{p.name|tex}}\BLOCK{if p.tagline} --- \VAR{p.tagline|tex}\BLOCK{endif}\par
+\BLOCK{if p.stack or p.links_tex}
+{\small\textit{\VAR{p.stack|tex}}\BLOCK{if p.stack and p.links_tex} \textbar{} \BLOCK{endif}\VAR{p.links_tex}}\par
+\BLOCK{endif}
+\BLOCK{if p.bullets}
+\begin{itemize}
+\BLOCK{for b in p.bullets}
+  \item \VAR{b.text|tex}
+\BLOCK{endfor}
+\end{itemize}
+\BLOCK{endif}
+\BLOCK{if not loop.last}\vspace{4pt}\BLOCK{endif}
+\BLOCK{endfor}
+\BLOCK{endif}
+
+\BLOCK{if experience}
+\resumesection{Experience}
+\BLOCK{for x in experience}
+\textbf{\VAR{x.company|tex}}\BLOCK{if x.title} --- \textit{\VAR{x.title|tex}}\BLOCK{endif}\hfill \VAR{x.right|tex}\par
+\BLOCK{if x.bullets}
+\begin{itemize}
+\BLOCK{for b in x.bullets}
+  \item \VAR{b.text|tex}
+\BLOCK{endfor}
+\end{itemize}
+\BLOCK{endif}
+\BLOCK{if not loop.last}\vspace{4pt}\BLOCK{endif}
+\BLOCK{endfor}
+\BLOCK{endif}
+
+\end{document}

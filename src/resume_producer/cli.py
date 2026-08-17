@@ -101,6 +101,35 @@ def show(
         typer.echo(f"[{s.id}] {s.name}: {s.items}")
 
 
+@app.command()
+def render(
+    candidate_id: Annotated[str, typer.Argument(help="candidate ID")],
+    output: Annotated[
+        Path | None, typer.Option("--output", "-o", help="输出 PDF 路径（默认 output/<id>.pdf）")
+    ] = None,
+) -> None:
+    """完整档案直接渲染 PDF（不经 AI，用于验证模板）。"""
+    from .renderer import RenderError, render_pdf
+
+    try:
+        candidate = load_candidate(candidate_id)
+    except FileNotFoundError as e:
+        typer.secho(str(e), fg=typer.colors.RED, err=True)
+        raise typer.Exit(1) from e
+    output = output or Path("output") / f"{candidate_id}.pdf"
+    try:
+        result = render_pdf(candidate, output)
+    except RenderError as e:
+        typer.secho(str(e), fg=typer.colors.RED, err=True)
+        raise typer.Exit(1) from e
+    typer.echo(f"已渲染 {result.pdf_path}（{result.pages} 页）")
+    if result.pages > 1:
+        typer.secho(
+            "提示：完整档案超过 1 页属正常；定制简历（tailor）会做单页控制。",
+            fg=typer.colors.YELLOW,
+        )
+
+
 def _print_bullets(bullets: list, full: bool) -> None:
     for bullet in bullets:
         text = bullet.text if full else _truncate(bullet.text, 80)
