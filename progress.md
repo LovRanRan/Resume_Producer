@@ -27,6 +27,12 @@
 - **JD 输入三种方式全做**：粘贴文本（最可靠，先做）、本地文件、URL 自动抓取（尽力而为——很多站点反爬/需登录，抓不到就提示用户粘贴）。
 - **多 candidate 支持**：数据模型按 candidate id 组织（`data/<candidate_id>/`），虽然当前主要是单用户自用。
 - **中英文简历**：档案可以中英混写；v1 产出以英文简历为主（美国求职场景），模板用 XeLaTeX 天然支持中文，后续可加中文模板。
+- **CLI 命名（2026-08-16 定）**：命令统一为 `resume`（原 `rusume` 为笔误）。
+- **模板风格（2026-08-16 定）**：经典单栏 ATS 风（Jake's Resume 类），黑白、紧凑、单页。
+- **改写尺度（2026-08-16 定）**：AI 可自由改写 bullet 措辞（按 JD 关键词重组、调整强调点），但每条必须引用档案条目 ID，程序端校验数字/事实未被编造。
+- **首份档案（2026-08-16 定）**：用用户真实材料整理 master 档案，存 `data/`（gitignore，不进 public repo）；格式设计以真实内容为准。仓库内另维护一份虚构的 `examples/candidate_example.md` 作为格式说明。
+- **条目 ID 方案**：ID 从条目标题自动生成 slug（如 `proj-wayfinder`），用户无需手写；ID 稳定，供 AI 输出引用 + 防幻觉校验。
+- **单页控制**：渲染后检测 PDF 页数，超页则按 AI 给出的优先级自动裁剪 bullet 重渲，循环到收敛（Phase 3 实现，Phase 2 模板需支持条目粒度增减）。
 
 ## 3. 技术选型（已定稿 ✅）
 
@@ -47,12 +53,12 @@
 | 0 | 项目规划 | progress.md、README、git repo | ✅ 完成 |
 | 1 | Candidate 模型 | Pydantic：基础信息/教育/实习/项目/技能，每条目带稳定 ID | ⬜ 未开始 |
 | 2 | Markdown 解析 | master .md → Candidate（约定 section 格式） | ⬜ 未开始 |
-| 3 | 存储层 | `rusume add/list/show`，data/ 目录 JSON 持久化 | ⬜ 未开始 |
+| 3 | 存储层 | `resume add/list/show`，data/ 目录 JSON 持久化 | ⬜ 未开始 |
 | 4 | LaTeX 模板 | 单页、固定格式、ATS 友好的简历模板 | ⬜ 未开始 |
-| 5 | PDF 渲染 | Jinja2 填模板 → XeLaTeX 编译，`rusume render` | ⬜ 未开始 |
+| 5 | PDF 渲染 | Jinja2 填模板 → XeLaTeX 编译，`resume render` | ⬜ 未开始 |
 | 6 | JD 输入 | 粘贴文本 / 文件 / URL 抓取 | ⬜ 未开始 |
 | 7 | AI 定制引擎 | Claude 筛选条目 + 改写 bullet → TailoredResume，防幻觉校验 | ⬜ 未开始 |
-| 8 | tailor 命令 | `rusume tailor --jd ...` 一条命令出定制 PDF + 产出历史 | ⬜ 未开始 |
+| 8 | tailor 命令 | `resume tailor --jd ...` 一条命令出定制 PDF + 产出历史 | ⬜ 未开始 |
 | 9 | 关键词覆盖报告 | 显示 JD 关键词覆盖情况 / 缺口提示 | ⬜ 未开始 |
 | 10 | Web 界面 / 服务化 | FastAPI + 前端（v2） | ⬜ 未开始 |
 
@@ -73,13 +79,13 @@
 ### Phase 2 — PDF 渲染
 - [ ] LaTeX 简历模板（固定格式）
 - [ ] Jinja2 渲染 + XeLaTeX 编译
-- [ ] `rusume render` 直接渲染 master 档案（不经 AI，用于验证模板）
+- [ ] `resume render` 直接渲染 master 档案（不经 AI，用于验证模板）
 
 ### Phase 3 — JD 定制（核心）
 - [ ] JD 输入：文本 / 文件 / URL 抓取
 - [ ] Claude structured output：TailoredResume（选条目 + 排序 + bullet 改写）
 - [ ] 防幻觉校验（产出内容必须能对应到档案条目）
-- [ ] `rusume tailor` 端到端：JD → 定制 PDF
+- [ ] `resume tailor` 端到端：JD → 定制 PDF
 - [ ] 产出历史记录(每个 JD 的产出存档)
 
 ### Phase 4 — 增强(后续)
@@ -91,3 +97,4 @@
 ## 6. 日志
 
 - 2026-08-16:Phase 0 —— 立项,确定技术方案,初始化 repo。
+- 2026-08-16:创建 GitHub repo(LovRanRan/Resume_Producer, public)并推送;修正仓库名笔误;CLI 定名 `resume`;确认模板风格(单栏 ATS)、改写尺度(自由改写+事实校验)、首份档案用真实材料、条目 ID 与单页控制方案。环境验证:XeLaTeX(TeX Live 2025)/uv/Python 3.12 就绪。

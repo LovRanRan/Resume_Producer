@@ -26,23 +26,23 @@ uv sync
 cp .env.example .env        # 填入 ANTHROPIC_API_KEY
 
 # 1) 导入你的 master 档案(格式见 examples/candidate_example.md)
-uv run rusume add examples/candidate_example.md
+uv run resume add examples/candidate_example.md
 
 # 2) 不经 AI 直接渲染完整简历(验证模板)
-uv run rusume render <candidate_id>
+uv run resume render <candidate_id>
 
 # 3) 按 JD 定制(核心功能)
-uv run rusume tailor <candidate_id> --jd-file jd.txt
-uv run rusume tailor <candidate_id> --jd-url "https://..."
-uv run rusume tailor <candidate_id>            # 交互式粘贴 JD
+uv run resume tailor <candidate_id> --jd-file jd.txt
+uv run resume tailor <candidate_id> --jd-url "https://..."
+uv run resume tailor <candidate_id>            # 交互式粘贴 JD
 ```
 
 ## CLI 命令
 
 | 命令 | 说明 |
 |------|------|
-| `rusume add <file.md>` | 解析 master 档案并存储为 candidate |
-| `rusume list` | 列出所有 candidate |
-| `rusume show <id>` | 查看 candidate 详情 |
-| `rusume render <id>` | 完整档案直接渲染 PDF(不经 AI) |
-| `rusume tailor <id> --jd-file/--jd-url` | 按 JD 生成定制简历 PDF |
+| `resume add <file.md>` | 解析 master 档案并存储为 candidate |
+| `resume list` | 列出所有 candidate |
+| `resume show <id>` | 查看 candidate 详情 |
+| `resume render <id>` | 完整档案直接渲染 PDF(不经 AI) |
+| `resume tailor <id> --jd-file/--jd-url` | 按 JD 生成定制简历 PDF |
