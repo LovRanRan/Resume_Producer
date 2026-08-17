@@ -130,6 +130,101 @@ def render(
         )
 
 
+@app.command()
+def tailor(
+    candidate_id: Annotated[str, typer.Argument(help="candidate ID")],
+    jd_file: Annotated[
+        Path | None, typer.Option("--jd-file", help="JD 文本文件", exists=True)
+    ] = None,
+    jd_url: Annotated[str | None, typer.Option("--jd-url", help="JD 页面 URL（尽力抓取）")] = None,
+    jd_text: Annotated[str | None, typer.Option("--jd-text", help="JD 文本")] = None,
+) -> None:
+    """按 JD 生成定制简历 PDF（核心命令）。不带 JD 参数时交互式粘贴。"""
+    import sys
+    from datetime import datetime
+
+    from .fitting import fit_to_one_page
+    from .jd_input import JDInputError, jd_from_file, jd_from_url
+    from .llm import LLMError
+    from .models import slugify
+    from .renderer import RenderError, render_tex
+    from .report import build_report
+    from .storage import data_dir
+    from .tailor import run_tailor
+
+    try:
+        candidate = load_candidate(candidate_id)
+    except FileNotFoundError as e:
+        typer.secho(str(e), fg=typer.colors.RED, err=True)
+        raise typer.Exit(1) from e
+
+    try:
+        if jd_file:
+            jd, jd_source = jd_from_file(jd_file), str(jd_file)
+        elif jd_url:
+            jd, jd_source = jd_from_url(jd_url), jd_url
+        elif jd_text:
+            jd, jd_source = jd_text, "命令行文本"
+        else:
+            typer.echo("粘贴 JD 文本，结束后按 Ctrl-D：")
+            jd, jd_source = sys.stdin.read().strip(), "交互粘贴"
+            if not jd:
+                typer.secho("JD 为空。", fg=typer.colors.RED, err=True)
+                raise typer.Exit(1)
+    except JDInputError as e:
+        typer.secho(str(e), fg=typer.colors.RED, err=True)
+        raise typer.Exit(1) from e
+
+    try:
+        outcome = run_tailor(candidate, jd, progress=typer.echo)
+    except LLMError as e:
+        typer.secho(f"LLM 调用失败：{e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1) from e
+
+    slug = slugify(outcome.analysis.company or outcome.analysis.role_title)
+    out_dir = data_dir() / candidate_id / "outputs" / (
+        f"{datetime.now():%Y%m%d-%H%M%S}-{slug}"  # noqa: DTZ005 — 本地时间命名目录
+    )
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "jd.txt").write_text(jd, encoding="utf-8")
+    (out_dir / "jd_analysis.json").write_text(
+        outcome.analysis.model_dump_json(indent=2), encoding="utf-8"
+    )
+    (out_dir / "selection.json").write_text(
+        outcome.selection.model_dump_json(indent=2), encoding="utf-8"
+    )
+    (out_dir / "rewrite.json").write_text(
+        outcome.rewrite.model_dump_json(indent=2), encoding="utf-8"
+    )
+
+    typer.echo("⑤ 渲染 + 单页裁剪中…")
+    try:
+        fit = fit_to_one_page(outcome.tailored, outcome.priorities, out_dir / "resume.pdf")
+    except RenderError as e:
+        typer.secho(str(e), fg=typer.colors.RED, err=True)
+        raise typer.Exit(1) from e
+    (out_dir / "resume.tex").write_text(render_tex(fit.candidate), encoding="utf-8")
+    (out_dir / "report.md").write_text(build_report(outcome, fit, jd_source), encoding="utf-8")
+
+    fallbacks = sum(1 for x in outcome.applied if x.fallback)
+    typer.echo(
+        f"\n完成：{outcome.analysis.role_title}"
+        + (f" @ {outcome.analysis.company}" if outcome.analysis.company else "")
+    )
+    typer.echo(
+        f"  项目 {len(fit.candidate.projects)} · 经历 {len(fit.candidate.experience)}"
+        f" · bullet {sum(len(e.bullets) for e in [*fit.candidate.projects, *fit.candidate.experience])}"
+        f" · {fit.pages} 页"
+        + (f" · 裁剪 {len(fit.trimmed)} 次" if fit.trimmed else "")
+        + (f" · 回退原文 {fallbacks} 条" if fallbacks else "")
+    )
+    typer.echo(f"  成本 ${outcome.usage.cost_usd:.3f}（{outcome.usage.calls} 次调用）")
+    typer.echo(f"  PDF：{out_dir / 'resume.pdf'}")
+    typer.echo(f"  报告：{out_dir / 'report.md'}")
+    if fit.pages > 1:
+        typer.secho("警告：裁无可裁仍超 1 页，请检查档案条目长度。", fg=typer.colors.YELLOW)
+
+
 def _print_bullets(bullets: list, full: bool) -> None:
     for bullet in bullets:
         text = bullet.text if full else _truncate(bullet.text, 80)

@@ -1,6 +1,6 @@
 \#{ classic.tex.j2 — 经典单栏 ATS 简历模板，Jinja2 自定义分隔符（VAR/BLOCK 前缀）}
 \documentclass[10pt]{article}
-\usepackage[margin=0.55in]{geometry}
+\usepackage[margin=0.5in]{geometry}
 \usepackage{fontspec}
 \setmainfont{texgyretermes}[
   Extension = .otf,
@@ -16,19 +16,19 @@
 \pagestyle{empty}
 
 \newcommand{\resumesection}[1]{%
-  \vspace{8pt}%
+  \vspace{5pt}%
   {\large\bfseries\MakeUppercase{#1}}\par
   \vspace{-6pt}\rule{\textwidth}{0.6pt}\par
-  \vspace{1pt}%
+  \vspace{0pt}%
 }
 
-\setlist[itemize]{leftmargin=1.15em, itemsep=1.5pt, parsep=0pt, topsep=2.5pt,
+\setlist[itemize]{leftmargin=1.15em, itemsep=0.5pt, parsep=0pt, topsep=1.5pt,
   label=\textbullet}
 
 \begin{document}
 
 \begin{center}
-  {\LARGE\bfseries \VAR{name|tex}}\\[4pt]
+  {\LARGE\bfseries \VAR{name|tex}}\\[2pt]
   \VAR{contact_tex}
 \end{center}
 
@@ -46,7 +46,7 @@
 \BLOCK{if e.coursework}
 Coursework: \VAR{e.coursework|tex}\par
 \BLOCK{endif}
-\BLOCK{if not loop.last}\vspace{4pt}\BLOCK{endif}
+\BLOCK{if not loop.last}\vspace{2.5pt}\BLOCK{endif}
 \BLOCK{endfor}
 \BLOCK{endif}
 
@@ -54,7 +54,7 @@ Coursework: \VAR{e.coursework|tex}\par
 \resumesection{Technical Skills}
 \BLOCK{for s in skills}
 \textbf{\VAR{s.name|tex}:} \VAR{s.items|tex}\par
-\BLOCK{if not loop.last}\vspace{1.5pt}\BLOCK{endif}
+\BLOCK{if not loop.last}\vspace{1pt}\BLOCK{endif}
 \BLOCK{endfor}
 \BLOCK{endif}
 
@@ -72,7 +72,7 @@ Coursework: \VAR{e.coursework|tex}\par
 \BLOCK{endfor}
 \end{itemize}
 \BLOCK{endif}
-\BLOCK{if not loop.last}\vspace{4pt}\BLOCK{endif}
+\BLOCK{if not loop.last}\vspace{2.5pt}\BLOCK{endif}
 \BLOCK{endfor}
 \BLOCK{endif}
 
@@ -87,7 +87,7 @@ Coursework: \VAR{e.coursework|tex}\par
 \BLOCK{endfor}
 \end{itemize}
 \BLOCK{endif}
-\BLOCK{if not loop.last}\vspace{4pt}\BLOCK{endif}
+\BLOCK{if not loop.last}\vspace{2.5pt}\BLOCK{endif}
 \BLOCK{endfor}
 \BLOCK{endif}
 

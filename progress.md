@@ -57,10 +57,10 @@
 | 3 | 存储层 | `resume add/list/show`，data/ 目录 JSON 持久化 | ✅ 完成 |
 | 4 | LaTeX 模板 | 单页、固定格式、ATS 友好的简历模板 | ✅ 完成 |
 | 5 | PDF 渲染 | Jinja2 填模板 → XeLaTeX 编译，`resume render` | ✅ 完成 |
-| 6 | JD 输入 | 粘贴文本 / 文件 / URL 抓取 | ⬜ 未开始 |
-| 7 | AI 定制引擎 | Claude 筛选条目 + 改写 bullet → TailoredResume，防幻觉校验 | ⬜ 未开始 |
-| 8 | tailor 命令 | `resume tailor --jd ...` 一条命令出定制 PDF + 产出历史 | ⬜ 未开始 |
-| 9 | 关键词覆盖报告 | 显示 JD 关键词覆盖情况 / 缺口提示 | ⬜ 未开始 |
+| 6 | JD 输入 | 粘贴文本 / 文件 / URL 抓取 | ✅ 完成 |
+| 7 | AI 定制引擎 | Claude 筛选条目 + 改写 bullet → TailoredResume，防幻觉校验 | ✅ 完成 |
+| 8 | tailor 命令 | `resume tailor --jd ...` 一条命令出定制 PDF + 产出历史 | ✅ 完成 |
+| 9 | 关键词覆盖报告 | 显示 JD 关键词覆盖情况 / 缺口提示 | ✅ 完成（并入 report.md） |
 | 10 | Web 界面 / 服务化 | FastAPI + 前端（v2） | ⬜ 未开始 |
 
 > 状态：✅ 完成 · 🟡 部分完成 · ⬜ 未开始
@@ -83,12 +83,13 @@
 - [x] Jinja2 渲染（\VAR/\BLOCK 分隔符 + LaTeX 转义过滤器）+ XeLaTeX 编译（返回页数）
 - [x] `resume render` 直接渲染 master 档案（不经 AI，用于验证模板）
 
-### Phase 3 — JD 定制（核心）
-- [ ] JD 输入：文本 / 文件 / URL 抓取
-- [ ] Claude structured output：TailoredResume（选条目 + 排序 + bullet 改写）
-- [ ] 防幻觉校验（产出内容必须能对应到档案条目）
-- [ ] `resume tailor` 端到端：JD → 定制 PDF
-- [ ] 产出历史记录(每个 JD 的产出存档)
+### Phase 3 — JD 定制（核心）✅
+- [x] JD 输入：文本 / 文件 / URL 抓取
+- [x] 三段式 structured output：JDAnalysis → TailoredSelection → RewriteResult（逐条改写+理由）
+- [x] 防幻觉校验（ID 存在性/数字守恒/技能子集）+ 失败修复一次 + 回退原文
+- [x] 单页裁剪循环（按 priority 纯程序裁剪）
+- [x] `resume tailor` 端到端：JD → 定制 PDF + report.md（含关键词覆盖）
+- [x] 产出历史记录（data/<id>/outputs/<时间戳>-<公司>/ 全套存档）
 
 ### Phase 4 — 增强(后续)
 - [ ] 关键词覆盖 / 缺口报告
@@ -103,3 +104,4 @@
 - 2026-08-16:Phase 1 完成 —— master 档案格式规范(docs/master-format.md)、Pydantic 模型、markdown 解析器(中英 section 别名、bullet 续行、自动条目 ID)、存储层、`resume add/list/show` CLI。16 pytest + ruff 全绿;用户真实简历(V4.1)整理为 data/haichuan/master.md 并导入验证:2 教育 / 2 经历 / 7 项目 / 5 技能类别 / 17 bullets,零警告。真实档案仅存本地(gitignore)。
 - 2026-08-16:Phase 2 完成 —— classic.tex.j2 模板(单栏 ATS,以用户 V4.1 简历版式为基准)、renderer.py(Jinja2 自定义分隔符、单遍 LaTeX 转义、xelatex 编译返回页数)。转义细节:`--` 防连字、`/` 允许断行、`→` 转 \rightarrow。`resume render haichuan` 出 2 页 PDF(完整档案超页属预期),版式经视觉核对。21 tests + ruff 全绿。
 - 2026-08-16:Phase 3 设计定稿 —— docs/agent-design.md:三段式 pipeline(JD 分析→选择→改写)、JDAnalysis/TailoredSelection/RewriteResult schema、三层防幻觉校验+修复策略、单页裁剪循环、产出存档结构、模块拆分。用户要求:改写独立成步,实习/项目 bullet 逐条改写并逐条给理由。API 用法经当前文档核对(messages.parse 结构化输出、adaptive thinking、effort)。
+- 2026-08-16:Phase 3 完成 —— schemas/validation/fitting/jd_input/llm/prompts/tailor/report 八模块 + `resume tailor` CLI。32 tests + ruff 全绿。真实 API 端到端两轮:AI Engineer 样例 JD,14→10 条选择,数字守恒校验全过(零修复),$0.2/次;报告含逐条改写三栏对照+21/25 关键词覆盖。调优:选择 prompt 加入单页版面预算(9-11 条);模板密度收紧(边距 0.5in、行距/条目距),同一选择从保留 5 条提升到 7 条、高价值 bullet 不再被裁,版面饱满度对齐用户 V4.1 原版。
