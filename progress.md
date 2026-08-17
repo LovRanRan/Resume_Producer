@@ -61,7 +61,7 @@
 | 7 | AI 定制引擎 | Claude 筛选条目 + 改写 bullet → TailoredResume，防幻觉校验 | ✅ 完成 |
 | 8 | tailor 命令 | `resume tailor --jd ...` 一条命令出定制 PDF + 产出历史 | ✅ 完成 |
 | 9 | 关键词覆盖报告 | 显示 JD 关键词覆盖情况 / 缺口提示 | ✅ 完成（并入 report.md） |
-| 10 | Web 界面 / 服务化 | FastAPI + 前端（v2） | ⬜ 未开始 |
+| 10 | Web 界面 / 服务化 | FastAPI 后端 + Next.js 前端 + Docker 部署 | ✅ 完成 |
 
 > 状态：✅ 完成 · 🟡 部分完成 · ⬜ 未开始
 
@@ -91,11 +91,15 @@
 - [x] `resume tailor` 端到端：JD → 定制 PDF + report.md（含关键词覆盖）
 - [x] 产出历史记录（data/<id>/outputs/<时间戳>-<公司>/ 全套存档）
 
-### Phase 4 — 增强(后续)
-- [ ] 关键词覆盖 / 缺口报告
+### Phase 4 — 服务化 + 前后端 ✅（2026-08-16）
+- [x] 关键词覆盖 / 缺口报告（并入 report.md）
+- [x] FastAPI 后端：档案 CRUD、tailor SSE 进度流、产出历史/文件服务、可选 Bearer token
+- [x] Next.js 前端：候选人列表/导入、工作台（定制/档案编辑/历史）、PDF 预览、报告渲染
+- [x] 部署：后端 Dockerfile(含 XeLaTeX) + docs/deploy.md（Vercel + 容器平台）
+
+### Phase 5 — 增强(后续)
 - [ ] 多模板 / 中文模板
 - [ ] Cover letter 生成
-- [ ] FastAPI 服务化 + Web 界面
 
 ## 6. 日志
 
@@ -105,3 +109,4 @@
 - 2026-08-16:Phase 2 完成 —— classic.tex.j2 模板(单栏 ATS,以用户 V4.1 简历版式为基准)、renderer.py(Jinja2 自定义分隔符、单遍 LaTeX 转义、xelatex 编译返回页数)。转义细节:`--` 防连字、`/` 允许断行、`→` 转 \rightarrow。`resume render haichuan` 出 2 页 PDF(完整档案超页属预期),版式经视觉核对。21 tests + ruff 全绿。
 - 2026-08-16:Phase 3 设计定稿 —— docs/agent-design.md:三段式 pipeline(JD 分析→选择→改写)、JDAnalysis/TailoredSelection/RewriteResult schema、三层防幻觉校验+修复策略、单页裁剪循环、产出存档结构、模块拆分。用户要求:改写独立成步,实习/项目 bullet 逐条改写并逐条给理由。API 用法经当前文档核对(messages.parse 结构化输出、adaptive thinking、effort)。
 - 2026-08-16:Phase 3 完成 —— schemas/validation/fitting/jd_input/llm/prompts/tailor/report 八模块 + `resume tailor` CLI。32 tests + ruff 全绿。真实 API 端到端两轮:AI Engineer 样例 JD,14→10 条选择,数字守恒校验全过(零修复),$0.2/次;报告含逐条改写三栏对照+21/25 关键词覆盖。调优:选择 prompt 加入单页版面预算(9-11 条);模板密度收紧(边距 0.5in、行距/条目距),同一选择从保留 5 条提升到 7 条、高价值 bullet 不再被裁,版面饱满度对齐用户 V4.1 原版。
+- 2026-08-16:Phase 4 完成 —— jobs.py 任务层(CLI/API 共用);api.py FastAPI 后端(档案 CRUD、tailor SSE、历史/文件服务、路径穿越防护、可选 RESUME_API_TOKEN);web/ Next.js 16 前端(候选人列表/导入、工作台三页签、SSE 进度、PDF iframe、react-markdown 报告);Dockerfile(python:3.12-slim + texlive-xetex)+ docs/deploy.md。41 tests 全绿。浏览器端到端实测:StreamCart ML 检索/排序 JD 走 Web UI 全流程,零裁剪零回退 $0.192,选择/改写随 JD 方向明显自适应(skills 重排、项目取舍与 AI Engineer JD 完全不同)。本地端口:API 8001、前端 3001(8000/3000 被其他项目占用)。

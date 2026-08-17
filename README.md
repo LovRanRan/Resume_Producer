@@ -12,10 +12,12 @@
 
 ## 技术栈
 
-- Python 3.12 + uv · Typer CLI · Pydantic v2
-- AI:Anthropic Claude API(structured outputs)
+- Python 3.12 + uv · Typer CLI · Pydantic v2 · FastAPI
+- 前端:Next.js (App Router + TypeScript + Tailwind)，SSE 实时进度
+- AI:Anthropic Claude API(structured outputs，三段式 pipeline + 程序端防幻觉校验)
 - PDF:Jinja2 → XeLaTeX(需要 MacTeX / TeX Live)
 - JD 输入:粘贴文本 / 本地文件 / URL 抓取
+- 部署:后端 Dockerfile(含 XeLaTeX) + 前端 Vercel，见 [docs/deploy.md](docs/deploy.md)
 
 ## 本地运行
 
@@ -46,3 +48,16 @@ uv run resume tailor <candidate_id>            # 交互式粘贴 JD
 | `resume show <id>` | 查看 candidate 详情 |
 | `resume render <id>` | 完整档案直接渲染 PDF(不经 AI) |
 | `resume tailor <id> --jd-file/--jd-url` | 按 JD 生成定制简历 PDF |
+| `resume api` | 启动 FastAPI 后端（供 Web 前端调用） |
+
+## Web 界面
+
+```bash
+uv run resume api --port 8001          # 后端
+npm --prefix web install               # 首次
+npm --prefix web run dev -- --port 3001  # 前端 → http://localhost:3001
+```
+
+工作台三个页签：**定制简历**（粘贴 JD → SSE 实时进度 → PDF 预览 + 逐条改写报告）、
+**master 档案**（在线编辑并重新导入）、**产出历史**（浏览所有历史定制）。
+云端部署见 [docs/deploy.md](docs/deploy.md)。

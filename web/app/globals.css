@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+body {
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "PingFang SC",
+    "Noto Sans SC",
+    sans-serif;
+}

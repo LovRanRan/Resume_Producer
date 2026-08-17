@@ -10,3 +10,6 @@ output/
 *.synctex.gz
 .DS_Store
 .trash/
+node_modules/
+.next/
+web/.env.local

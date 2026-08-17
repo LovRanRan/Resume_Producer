@@ -141,16 +141,11 @@ def tailor(
 ) -> None:
     """按 JD 生成定制简历 PDF（核心命令）。不带 JD 参数时交互式粘贴。"""
     import sys
-    from datetime import datetime
 
-    from .fitting import fit_to_one_page
     from .jd_input import JDInputError, jd_from_file, jd_from_url
+    from .jobs import run_tailor_job
     from .llm import LLMError
-    from .models import slugify
-    from .renderer import RenderError, render_tex
-    from .report import build_report
-    from .storage import data_dir
-    from .tailor import run_tailor
+    from .renderer import RenderError
 
     try:
         candidate = load_candidate(candidate_id)
@@ -176,53 +171,40 @@ def tailor(
         raise typer.Exit(1) from e
 
     try:
-        outcome = run_tailor(candidate, jd, progress=typer.echo)
+        job = run_tailor_job(candidate, jd, jd_source, progress=typer.echo)
     except LLMError as e:
         typer.secho(f"LLM 调用失败：{e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1) from e
-
-    slug = slugify(outcome.analysis.company or outcome.analysis.role_title)
-    out_dir = data_dir() / candidate_id / "outputs" / (
-        f"{datetime.now():%Y%m%d-%H%M%S}-{slug}"  # noqa: DTZ005 — 本地时间命名目录
-    )
-    out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "jd.txt").write_text(jd, encoding="utf-8")
-    (out_dir / "jd_analysis.json").write_text(
-        outcome.analysis.model_dump_json(indent=2), encoding="utf-8"
-    )
-    (out_dir / "selection.json").write_text(
-        outcome.selection.model_dump_json(indent=2), encoding="utf-8"
-    )
-    (out_dir / "rewrite.json").write_text(
-        outcome.rewrite.model_dump_json(indent=2), encoding="utf-8"
-    )
-
-    typer.echo("⑤ 渲染 + 单页裁剪中…")
-    try:
-        fit = fit_to_one_page(outcome.tailored, outcome.priorities, out_dir / "resume.pdf")
     except RenderError as e:
         typer.secho(str(e), fg=typer.colors.RED, err=True)
         raise typer.Exit(1) from e
-    (out_dir / "resume.tex").write_text(render_tex(fit.candidate), encoding="utf-8")
-    (out_dir / "report.md").write_text(build_report(outcome, fit, jd_source), encoding="utf-8")
 
-    fallbacks = sum(1 for x in outcome.applied if x.fallback)
+    s = job.summary()
+    typer.echo(f"\n完成：{s['role_title']}" + (f" @ {s['company']}" if s["company"] else ""))
     typer.echo(
-        f"\n完成：{outcome.analysis.role_title}"
-        + (f" @ {outcome.analysis.company}" if outcome.analysis.company else "")
+        f"  项目 {s['projects']} · 经历 {s['experience']} · bullet {s['bullets']}"
+        f" · {s['pages']} 页"
+        + (f" · 裁剪 {s['trimmed']} 次" if s["trimmed"] else "")
+        + (f" · 回退原文 {s['fallbacks']} 条" if s["fallbacks"] else "")
     )
-    typer.echo(
-        f"  项目 {len(fit.candidate.projects)} · 经历 {len(fit.candidate.experience)}"
-        f" · bullet {sum(len(e.bullets) for e in [*fit.candidate.projects, *fit.candidate.experience])}"
-        f" · {fit.pages} 页"
-        + (f" · 裁剪 {len(fit.trimmed)} 次" if fit.trimmed else "")
-        + (f" · 回退原文 {fallbacks} 条" if fallbacks else "")
-    )
-    typer.echo(f"  成本 ${outcome.usage.cost_usd:.3f}（{outcome.usage.calls} 次调用）")
-    typer.echo(f"  PDF：{out_dir / 'resume.pdf'}")
-    typer.echo(f"  报告：{out_dir / 'report.md'}")
-    if fit.pages > 1:
+    typer.echo(f"  关键词覆盖 {s['keywords_covered']}/{s['keywords_total']}")
+    typer.echo(f"  成本 ${s['cost_usd']:.3f}（{s['llm_calls']} 次调用）")
+    typer.echo(f"  PDF：{job.out_dir / 'resume.pdf'}")
+    typer.echo(f"  报告：{job.out_dir / 'report.md'}")
+    if s["pages"] > 1:
         typer.secho("警告：裁无可裁仍超 1 页，请检查档案条目长度。", fg=typer.colors.YELLOW)
+
+
+@app.command()
+def api(
+    host: Annotated[str, typer.Option(help="监听地址")] = "127.0.0.1",
+    port: Annotated[int, typer.Option(help="端口")] = 8000,
+    reload: Annotated[bool, typer.Option("--reload", help="开发热重载")] = False,
+) -> None:
+    """启动 FastAPI 后端（供 Next.js 前端调用）。"""
+    import uvicorn
+
+    uvicorn.run("resume_producer.api:app", host=host, port=port, reload=reload)
 
 
 def _print_bullets(bullets: list, full: bool) -> None:
