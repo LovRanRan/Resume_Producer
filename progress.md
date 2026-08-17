@@ -33,6 +33,7 @@
 - **首份档案（2026-08-16 定）**：用用户真实材料整理 master 档案，存 `data/`（gitignore，不进 public repo）；格式设计以真实内容为准。仓库内另维护一份虚构的 `examples/candidate_example.md` 作为格式说明。
 - **条目 ID 方案**：ID 从条目标题自动生成 slug（如 `proj-wayfinder`），用户无需手写；ID 稳定，供 AI 输出引用 + 防幻觉校验。
 - **单页控制**：渲染后检测 PDF 页数，超页则按 AI 给出的优先级自动裁剪 bullet 重渲，循环到收敛（Phase 3 实现，Phase 2 模板需支持条目粒度增减）。
+- **AI 定制引擎设计（2026-08-16 定稿，详见 docs/agent-design.md）**：确定性 pipeline + 两次 LLM 调用（JD 分析 low effort → 选择改写 high effort），非多轮 agent；`messages.parse()` + Pydantic 结构化输出；程序端防幻觉校验（ID 存在性/数字守恒/技能子集），失败 bullet 附错误原因 LLM 修复一次、仍失败回退原文；skills 允许子集+重排；每次 tailor 产出存档 `data/<id>/outputs/`；成本约 $0.1–0.2/份。
 
 ## 3. 技术选型（已定稿 ✅）
 
@@ -101,3 +102,4 @@
 - 2026-08-16:创建 GitHub repo(LovRanRan/Resume_Producer, public)并推送;修正仓库名笔误;CLI 定名 `resume`;确认模板风格(单栏 ATS)、改写尺度(自由改写+事实校验)、首份档案用真实材料、条目 ID 与单页控制方案。环境验证:XeLaTeX(TeX Live 2025)/uv/Python 3.12 就绪。
 - 2026-08-16:Phase 1 完成 —— master 档案格式规范(docs/master-format.md)、Pydantic 模型、markdown 解析器(中英 section 别名、bullet 续行、自动条目 ID)、存储层、`resume add/list/show` CLI。16 pytest + ruff 全绿;用户真实简历(V4.1)整理为 data/haichuan/master.md 并导入验证:2 教育 / 2 经历 / 7 项目 / 5 技能类别 / 17 bullets,零警告。真实档案仅存本地(gitignore)。
 - 2026-08-16:Phase 2 完成 —— classic.tex.j2 模板(单栏 ATS,以用户 V4.1 简历版式为基准)、renderer.py(Jinja2 自定义分隔符、单遍 LaTeX 转义、xelatex 编译返回页数)。转义细节:`--` 防连字、`/` 允许断行、`→` 转 \rightarrow。`resume render haichuan` 出 2 页 PDF(完整档案超页属预期),版式经视觉核对。21 tests + ruff 全绿。
+- 2026-08-16:Phase 3 设计定稿 —— docs/agent-design.md:两段式 pipeline、TailoredResume/JDAnalysis schema、三层防幻觉校验+修复策略、单页裁剪循环、产出存档结构、模块拆分。API 用法经当前文档核对(messages.parse 结构化输出、adaptive thinking、effort)。
