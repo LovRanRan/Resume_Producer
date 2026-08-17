@@ -51,9 +51,9 @@
 | # | 模块 | 说明 | 状态 |
 |---|------|------|------|
 | 0 | 项目规划 | progress.md、README、git repo | ✅ 完成 |
-| 1 | Candidate 模型 | Pydantic：基础信息/教育/实习/项目/技能，每条目带稳定 ID | ⬜ 未开始 |
-| 2 | Markdown 解析 | master .md → Candidate（约定 section 格式） | ⬜ 未开始 |
-| 3 | 存储层 | `resume add/list/show`，data/ 目录 JSON 持久化 | ⬜ 未开始 |
+| 1 | Candidate 模型 | Pydantic：基础信息/教育/实习/项目/技能，每条目带稳定 ID | ✅ 完成 |
+| 2 | Markdown 解析 | master .md → Candidate（约定 section 格式） | ✅ 完成 |
+| 3 | 存储层 | `resume add/list/show`，data/ 目录 JSON 持久化 | ✅ 完成 |
 | 4 | LaTeX 模板 | 单页、固定格式、ATS 友好的简历模板 | ⬜ 未开始 |
 | 5 | PDF 渲染 | Jinja2 填模板 → XeLaTeX 编译，`resume render` | ⬜ 未开始 |
 | 6 | JD 输入 | 粘贴文本 / 文件 / URL 抓取 | ⬜ 未开始 |
@@ -71,10 +71,11 @@
 - [x] 写 progress.md / README
 - [x] 初始化 git repo + GitHub
 
-### Phase 1 — 核心数据层
-- [ ] Candidate Pydantic 模型（含条目稳定 ID）
-- [ ] master markdown 解析器 + 示例档案
-- [ ] 存储层 + CLI（add / list / show）
+### Phase 1 — 核心数据层 ✅
+- [x] Candidate Pydantic 模型（含条目稳定 ID）
+- [x] master markdown 解析器 + 示例档案（格式规范：docs/master-format.md）
+- [x] 存储层 + CLI（add / list / show）
+- [x] 真实 master 档案导入验证（data/haichuan，17 bullets，零警告）
 
 ### Phase 2 — PDF 渲染
 - [ ] LaTeX 简历模板（固定格式）
@@ -98,3 +99,4 @@
 
 - 2026-08-16:Phase 0 —— 立项,确定技术方案,初始化 repo。
 - 2026-08-16:创建 GitHub repo(LovRanRan/Resume_Producer, public)并推送;修正仓库名笔误;CLI 定名 `resume`;确认模板风格(单栏 ATS)、改写尺度(自由改写+事实校验)、首份档案用真实材料、条目 ID 与单页控制方案。环境验证:XeLaTeX(TeX Live 2025)/uv/Python 3.12 就绪。
+- 2026-08-16:Phase 1 完成 —— master 档案格式规范(docs/master-format.md)、Pydantic 模型、markdown 解析器(中英 section 别名、bullet 续行、自动条目 ID)、存储层、`resume add/list/show` CLI。16 pytest + ruff 全绿;用户真实简历(V4.1)整理为 data/haichuan/master.md 并导入验证:2 教育 / 2 经历 / 7 项目 / 5 技能类别 / 17 bullets,零警告。真实档案仅存本地(gitignore)。
